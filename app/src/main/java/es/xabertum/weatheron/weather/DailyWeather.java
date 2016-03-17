@@ -21,7 +21,18 @@ public class DailyWeather implements Parcelable {
     private String mTimezone;
     public static final String TAG = DailyForecastActivity.class.getSimpleName();
 
+    //---------------------------------- CONSTRUCTORES ---------------------------------------------
 
+    /**
+     * Constructor por defecto.
+     */
+    public DailyWeather () {}
+
+
+    /**
+     *
+     * @param in
+     */
     public DailyWeather(Parcel in) {
         mTime = in.readLong();
         mSummary = in.readString();
@@ -31,7 +42,10 @@ public class DailyWeather implements Parcelable {
 
     }
 
-    public DailyWeather () {}
+
+    /**
+     *
+     */
 
     public static final Creator<DailyWeather> CREATOR = new Creator<DailyWeather>() {
         @Override
@@ -44,6 +58,10 @@ public class DailyWeather implements Parcelable {
             return new DailyWeather[size];
         }
     };
+
+
+    //--------------------------------------- GETTERs & SETTERs ------------------------------------
+
 
     public long getTime() {
         return mTime;
@@ -99,6 +117,8 @@ public class DailyWeather implements Parcelable {
 
     }
 
+
+    //----------------------------------- METODOS AUX ---------------------------------------------
 
     @Override
     public int describeContents() {
