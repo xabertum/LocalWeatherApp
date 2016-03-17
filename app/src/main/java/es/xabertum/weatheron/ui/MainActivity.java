@@ -80,19 +80,28 @@ public class MainActivity extends AppCompatActivity implements
     public String mIcon;
 
 
-    @Bind(R.id.timeLabel) TextView mTimeLabel;
-    @Bind(R.id.temperatureLabel) TextView mTemperatureLabel;
-    @Bind(R.id.humidityValue) TextView mHumidityValue;
-    @Bind(R.id.precipValue) TextView mPrecipValue;
-    @Bind(R.id.summaryLabel) TextView mSummaryLabel;
-    @Bind(R.id.iconImageView) ImageView mIconImageView;
-    @Bind(R.id.refreshImageView) ImageView mRefreshImageView;
-    @Bind(R.id.progressBar) ProgressBar mProgressBar;
-    @Bind(R.id.mainBackground) RelativeLayout mMainBackground;
+    @Bind(R.id.timeLabel)
+    TextView mTimeLabel;
+    @Bind(R.id.temperatureLabel)
+    TextView mTemperatureLabel;
+    @Bind(R.id.humidityValue)
+    TextView mHumidityValue;
+    @Bind(R.id.precipValue)
+    TextView mPrecipValue;
+    @Bind(R.id.summaryLabel)
+    TextView mSummaryLabel;
+    @Bind(R.id.iconImageView)
+    ImageView mIconImageView;
+    @Bind(R.id.refreshImageView)
+    ImageView mRefreshImageView;
+    @Bind(R.id.progressBar)
+    ProgressBar mProgressBar;
+    @Bind(R.id.mainBackground)
+    RelativeLayout mMainBackground;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)  {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
@@ -104,129 +113,93 @@ public class MainActivity extends AppCompatActivity implements
         mLocationAddressTextView = (TextView) findViewById(R.id.weekSummary);
 
 
-       buildGoogleApiClient();
+        buildGoogleApiClient();
 
-       // Create the LocationRequest object
+        // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
                 .setFastestInterval(60000); // 1 second, in milliseconds
 
-}
+    }
+
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-}
+    }
 
     /**
      * Devuelve el pronóstico del tiempo en la latitude y longitude pasadas como argumento.
-     * @param latitude
-     * @param longitude
+     *
+     * @param latitude  - latitud geografica.
+     * @param longitude - longitud geográfica.
      */
-    private void getForecast(double latitude, double longitude ) {
+    private void getForecast(double latitude, double longitude) {
         String apiKey = "6038b2fca99d5702cc65f0245857ae6b";
 
         String forecastUrl = "https://api.forecast.io/forecast/" + apiKey +
-                "/" + latitude + "," + longitude +"?units=si";
+                "/" + latitude + "," + longitude + "?units=si";
 
         if (isNetworkAvailable()) {
 
             toogleRefresh();
 
-        OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(forecastUrl).build();
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(forecastUrl).build();
 
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Request request, IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        toogleRefresh();
-                    }
-                });
-                alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
-            }
-
-            @Override
-            public void onResponse(Response response) throws IOException {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        toogleRefresh();
-                    }
-                });
-
-                try {
-                    String jsonData = response.body().string();
-                    Log.v(TAG, jsonData);
-                    if (response.isSuccessful()) {
-                        mforecast = parseForecastDetails(jsonData);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                updateDisplay();
-                            }
-                        });
-
-                    } else {
-                        alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
-                    }
-
-                } catch (IOException e) {
-                    Log.e(TAG, "Exeception caught: ", e);
-                } catch (JSONException e) {
-                    Log.e(TAG, "Exeception caught: ", e);
+            Call call = client.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onFailure(Request request, IOException e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            toogleRefresh();
+                        }
+                    });
+                    alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
                 }
-            }
-        });
-    }
-        else {
+
+                @Override
+                public void onResponse(Response response) throws IOException {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            toogleRefresh();
+                        }
+                    });
+
+                    try {
+                        String jsonData = response.body().string();
+                        Log.v(TAG, jsonData);
+                        if (response.isSuccessful()) {
+                            mforecast = parseForecastDetails(jsonData);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    updateDisplay();
+                                }
+                            });
+
+                        } else {
+                            alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
+                        }
+
+                    } catch (IOException e) {
+                        Log.e(TAG, "Exeception caught: ", e);
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Exeception caught: ", e);
+                    }
+                }
+            });
+        } else {
             alertUserAboutError(getString(R.string.error_title), getString(R.string.network_unavailable_message));
         }
     }
 
-    private void toogleRefresh() {
-
-        if(mProgressBar.getVisibility() == View.INVISIBLE) {
-            mProgressBar.setVisibility(View.VISIBLE);
-            mRefreshImageView.setVisibility(View.INVISIBLE);
-        } else {
-            mProgressBar.setVisibility(View.INVISIBLE);
-            mRefreshImageView.setVisibility(View.VISIBLE);
-        }
-    }
-
-    private void updateDisplay() {
-        Current current = mforecast.getCurrent();
-
-        mTemperatureLabel.setText(current.getTemperature() + "");
-        mTimeLabel.setText("At " + current.getFormattedTime() + " it will be");
-        mHumidityValue.setText(current.getHumidity() + "");
-        mPrecipValue.setText(current.getPrecipChance() + "%");
-        mSummaryLabel.setText(current.getSummary());
-
-        Drawable drawable = getResources().getDrawable(current.getIconId());
-        mIconImageView.setImageDrawable(drawable);
-
-        Drawable drawableBg = getResources().getDrawable(current.getBackgroundId());
-        mMainBackground.setBackground(drawableBg);
-
-    }
-
-    private Forecast parseForecastDetails (String jsonData) throws JSONException {
-        Forecast forecast = new Forecast();
-
-        forecast.setCurrent(getCurrentDetails(jsonData));
-        forecast.setHourlyForecast(getHourlyForecast(jsonData));
-        forecast.setDailyForecast(getDailyForecast(jsonData));
-
-        return forecast;
-    }
 
     public DailyWeather[] getDailyForecast(String jsonData) throws JSONException {
         JSONObject forecast = new JSONObject(jsonData);
@@ -265,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements
 
         HourlyWeather[] hourlyWeathers = new HourlyWeather[data.length()];
 
-        for (int i = 0; i <  data.length(); i++) {
+        for (int i = 0; i < data.length(); i++) {
             JSONObject jsonHour = data.getJSONObject(i);
             HourlyWeather hourlyWeather = new HourlyWeather();
 
@@ -279,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements
 
         }
 
-            return hourlyWeathers;
+        return hourlyWeathers;
     }
 
     private Current getCurrentDetails(String jsonData) throws JSONException {
@@ -303,6 +276,9 @@ public class MainActivity extends AppCompatActivity implements
         return current;
     }
 
+
+    //------------------------------- METODOS CONEXION APIs ----------------------------------------
+
     private boolean isNetworkAvailable() {
         ConnectivityManager manager = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -315,16 +291,6 @@ public class MainActivity extends AppCompatActivity implements
         return isAvailable;
     }
 
-    private void alertUserAboutError(String alertTitle, String alertBody) {
-        Bundle messageArgs = new Bundle();
-        messageArgs.putString(AlertDialogFragment.TITLE_ID, alertTitle);
-        messageArgs.putString(AlertDialogFragment.MESSAGE_ID, alertBody);
-
-        AlertDialogFragment dialog = new AlertDialogFragment();
-        dialog.setArguments(messageArgs);
-        dialog.show(getFragmentManager(), "error_dialog");
-
-    }
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -335,9 +301,7 @@ public class MainActivity extends AppCompatActivity implements
 
             alertUserAboutError(getString(R.string.error_title), getString(R.string.NoLocationServices));
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        }
-
-        else {
+        } else {
 
             final double lastLatitude = lastLocation.getLatitude();
             final double lastLongitude = lastLocation.getLongitude();
@@ -352,16 +316,16 @@ public class MainActivity extends AppCompatActivity implements
             getForecast(lastLatitude, lastLongitude);
 
             Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-            List<Address> addresses= null;
+            List<Address> addresses = null;
             try {
                 addresses = geocoder.getFromLocation(lastLatitude, lastLongitude, 1);
 
-                if (addresses == null || addresses.size() == 0){
+                if (addresses == null || addresses.size() == 0) {
 
                     String geocoderAPIKey = "AIzaSyCTIaJJ8hNy4kE5RFcpeoS7TEplA66pZX8";
 
                     String revGeocoderUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lastLatitude + "," + lastLongitude
-                            +"&key=" + geocoderAPIKey;
+                            + "&key=" + geocoderAPIKey;
 
                     OkHttpClient client2 = new OkHttpClient();
                     Request request2 = new Request.Builder().url(revGeocoderUrl).build();
@@ -410,9 +374,7 @@ public class MainActivity extends AppCompatActivity implements
 
                     mLocationAddressTextView.setText(locality);
 
-                    }
-
-                else {
+                } else {
 
                     String cityName = addresses.get(0).getAddressLine(0);
                     String stateName = addresses.get(0).getAddressLine(1);
@@ -455,19 +417,18 @@ public class MainActivity extends AppCompatActivity implements
         try {
             addresses = geocoder.getFromLocation(currentLatitude, currentLongitude, 1);
 
-            if (addresses == null || addresses.size() == 0){
+            if (addresses == null || addresses.size() == 0) {
                 alertUserAboutError(getString(R.string.error_title), getString(R.string.no_address));
-            }
-            else {
+            } else {
                 String cityName = addresses.get(0).getAddressLine(0);
                 String stateName = addresses.get(0).getAddressLine(1);
                 String countryName = addresses.get(0).getAddressLine(2);
 
-                Log.i(TAG, "Location services connected." + cityName.replaceAll("\\d",""));
+                Log.i(TAG, "Location services connected." + cityName.replaceAll("\\d", ""));
                 Log.i(TAG, "Location services connected." + stateName.replaceAll("\\d", ""));
                 Log.i(TAG, "Location services connected." + countryName);
 
-                mLocationAddressTextView.setText(cityName.replaceAll("\\d","") + ", " + stateName);
+                mLocationAddressTextView.setText(cityName.replaceAll("\\d", "") + ", " + stateName);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -493,6 +454,49 @@ public class MainActivity extends AppCompatActivity implements
         Log.i(TAG, "Location services suspended. Please reconnect.");
     }
 
+    //-------------------------------- METODOS AUXILIARES ------------------------------------------
+
+    /**
+     * Boton de refresco de los datos con el pronostico del tiempo.
+     */
+    private void toogleRefresh() {
+
+        if (mProgressBar.getVisibility() == View.INVISIBLE) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mRefreshImageView.setVisibility(View.INVISIBLE);
+        } else {
+            mProgressBar.setVisibility(View.INVISIBLE);
+            mRefreshImageView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void updateDisplay() {
+        Current current = mforecast.getCurrent();
+
+        mTemperatureLabel.setText(current.getTemperature() + "");
+        mTimeLabel.setText("At " + current.getFormattedTime() + " it will be");
+        mHumidityValue.setText(current.getHumidity() + "");
+        mPrecipValue.setText(current.getPrecipChance() + "%");
+        mSummaryLabel.setText(current.getSummary());
+
+        Drawable drawable = getResources().getDrawable(current.getIconId());
+        mIconImageView.setImageDrawable(drawable);
+
+        Drawable drawableBg = getResources().getDrawable(current.getBackgroundId());
+        mMainBackground.setBackground(drawableBg);
+
+    }
+
+    private Forecast parseForecastDetails(String jsonData) throws JSONException {
+        Forecast forecast = new Forecast();
+
+        forecast.setCurrent(getCurrentDetails(jsonData));
+        forecast.setHourlyForecast(getHourlyForecast(jsonData));
+        forecast.setDailyForecast(getDailyForecast(jsonData));
+
+        return forecast;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -508,8 +512,21 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    private void alertUserAboutError(String alertTitle, String alertBody) {
+        Bundle messageArgs = new Bundle();
+        messageArgs.putString(AlertDialogFragment.TITLE_ID, alertTitle);
+        messageArgs.putString(AlertDialogFragment.MESSAGE_ID, alertBody);
+
+        AlertDialogFragment dialog = new AlertDialogFragment();
+        dialog.setArguments(messageArgs);
+        dialog.show(getFragmentManager(), "error_dialog");
+
+    }
+
+
+    //--------------------------------------------- BOTONES ----------------------------------------
     @OnClick(R.id.dailyButton)
-    public void startDailyActivity (View view){
+    public void startDailyActivity(View view) {
         Intent intent = new Intent(this, DailyForecastActivity.class);
         intent.putExtra(DAILY_FORECAST, mforecast.getDailyForecast());
         intent.putExtra(WEEK_SUMMARY, weekSummary);
@@ -518,7 +535,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @OnClick(R.id.hourlyButton)
-    public void startHourlyActivity(View view){
+    public void startHourlyActivity(View view) {
         Intent intent = new Intent(this, HourlyForecastActivity.class);
         intent.putExtra(HOURLY_FORECAST, mforecast.getHourlyForecast());
         startActivity(intent);
