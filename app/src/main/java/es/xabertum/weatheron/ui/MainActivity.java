@@ -121,6 +121,11 @@ public class MainActivity extends AppCompatActivity implements
                 .build();
 }
 
+    /**
+     * Devuelve el pronóstico del tiempo en la latitude y longitude pasadas como argumento.
+     * @param latitude
+     * @param longitude
+     */
     private void getForecast(double latitude, double longitude ) {
         String apiKey = "6038b2fca99d5702cc65f0245857ae6b";
 
