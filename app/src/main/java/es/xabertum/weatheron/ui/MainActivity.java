@@ -99,7 +99,10 @@ public class MainActivity extends AppCompatActivity implements
     @Bind(R.id.mainBackground)
     RelativeLayout mMainBackground;
 
-
+    /**
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,6 +126,9 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    /**
+     * Construye el objeto cliente del API de Google.
+     */
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -200,7 +206,12 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
-
+    /**
+     *
+     * @param jsonData
+     * @return
+     * @throws JSONException
+     */
     public DailyWeather[] getDailyForecast(String jsonData) throws JSONException {
         JSONObject forecast = new JSONObject(jsonData);
         String timezone = forecast.getString("timezone");
@@ -230,6 +241,13 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+
+    /**
+     *
+     * @param jsonData
+     * @return
+     * @throws JSONException
+     */
     private HourlyWeather[] getHourlyForecast(String jsonData) throws JSONException {
         JSONObject forecast = new JSONObject(jsonData);
         String timezone = forecast.getString("timezone");
@@ -255,6 +273,12 @@ public class MainActivity extends AppCompatActivity implements
         return hourlyWeathers;
     }
 
+    /**
+     *
+     * @param jsonData
+     * @return
+     * @throws JSONException
+     */
     private Current getCurrentDetails(String jsonData) throws JSONException {
         JSONObject forecast = new JSONObject(jsonData);
         String timezone = forecast.getString("timezone");
@@ -279,6 +303,10 @@ public class MainActivity extends AppCompatActivity implements
 
     //------------------------------- METODOS CONEXION APIs ----------------------------------------
 
+    /**
+     *
+     * @return
+     */
     private boolean isNetworkAvailable() {
         ConnectivityManager manager = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -291,7 +319,10 @@ public class MainActivity extends AppCompatActivity implements
         return isAvailable;
     }
 
-
+    /**
+     *
+     * @param bundle
+     */
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Location services connected.");
@@ -396,6 +427,10 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     *
+     * @param location
+     */
     @Override
     public void onLocationChanged(Location location) {
 
@@ -435,6 +470,10 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     *
+     * @param connectionResult
+     */
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         if (connectionResult.hasResolution()) {
@@ -449,6 +488,10 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    /**
+     *
+     * @param i
+     */
     @Override
     public void onConnectionSuspended(int i) {
         Log.i(TAG, "Location services suspended. Please reconnect.");
