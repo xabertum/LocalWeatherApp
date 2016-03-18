@@ -15,6 +15,9 @@ import es.xabertum.weatheron.R;
 import es.xabertum.weatheron.adapters.HourAdapter;
 import es.xabertum.weatheron.weather.HourlyWeather;
 
+/**
+ * Activity con la prediccion por horas.
+ */
 public class HourlyForecastActivity extends ActionBarActivity {
 
     private HourlyWeather[] mHourlyWeathers;

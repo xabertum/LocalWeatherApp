@@ -26,6 +26,9 @@ import es.xabertum.weatheron.adapters.DayAdapter;
 import es.xabertum.weatheron.weather.DailyWeather;
 import es.xabertum.weatheron.weather.Forecast;
 
+/**
+ * Activity con la prediccion por Días.
+ */
 public class DailyForecastActivity extends ListActivity {
 
     private DailyWeather[] mDays;
