@@ -18,6 +18,9 @@ public class Current {
     private String mSummary;
     private String mTimeZone;
 
+
+    //---------------------------------- GETTERs & SETTERs -----------------------------------------
+
     public String getTimeZone() {
         return mTimeZone;
     }
