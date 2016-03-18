@@ -13,7 +13,6 @@ public class Forecast {
     private DailyWeather mDailyWeather;
 
 
-
     public DailyWeather getDailyWeather() {
         return mDailyWeather;
     }
@@ -21,8 +20,6 @@ public class Forecast {
     public void setDailyWeather(DailyWeather dailyWeather) {
         mDailyWeather = dailyWeather;
     }
-
-
 
 
     public Current getCurrent() {
@@ -40,6 +37,7 @@ public class Forecast {
     public void setHourlyForecast(HourlyWeather[] hourlyForecast) {
         mHourlyForecast = hourlyForecast;
     }
+
 
     public DailyWeather[] getDailyForecast() {
         return mDailyForecast;
@@ -86,7 +84,7 @@ public class Forecast {
     }
 
 
-    public static int getBackground (String iconString) {
+    public static int getBackground(String iconString) {
 
         //clear-day, clear-night, rain, snow, sleet, wind, fog, cloudy, partly-cloudy-day, or partly-cloudy-night.
 
@@ -115,8 +113,6 @@ public class Forecast {
         }
 
         return backgroundId;
-
-
 
 
     }
