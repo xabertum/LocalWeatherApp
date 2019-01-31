@@ -2,29 +2,15 @@ package es.xabertum.weatheron.ui;
 
 import android.app.ListActivity;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.os.Parcelable;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.text.Layout;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.RelativeLayout;
+import android.os.Parcelable;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
 import es.xabertum.weatheron.R;
 import es.xabertum.weatheron.adapters.DayAdapter;
 import es.xabertum.weatheron.weather.DailyWeather;
-import es.xabertum.weatheron.weather.Forecast;
 
 /**
  * Activity con la prediccion por Días.
