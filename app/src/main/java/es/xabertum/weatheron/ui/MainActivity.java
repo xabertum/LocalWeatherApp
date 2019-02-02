@@ -2,16 +2,21 @@ package es.xabertum.weatheron.ui;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -19,12 +24,15 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.OkHttpClient;
@@ -57,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    private static final int ACCESS_FINE_LOCATION_PERMISSION = 101;
+    private FusedLocationProviderClient mFusedLocationClient;
     private GoogleApiClient mGoogleApiClient;
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private LocationRequest mLocationRequest;
@@ -91,9 +101,10 @@ public class MainActivity extends AppCompatActivity implements
     ProgressBar mProgressBar;
     @BindView(R.id.mainBackground)
     RelativeLayout mMainBackground;
+    @BindView(R.id.location)
+    TextView mLocation;
 
     /**
-     *
      * @param savedInstanceState
      */
     @Override
@@ -106,8 +117,9 @@ public class MainActivity extends AppCompatActivity implements
 
         Log.d(TAG, "Main UI code is running!");
 
-        mLocationAddressTextView = (TextView) findViewById(R.id.weekSummary);
+        mLocationAddressTextView = (TextView) findViewById(R.id.location);
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         buildGoogleApiClient();
 
@@ -116,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
                 .setFastestInterval(60000); // 1 second, in milliseconds
+
+        mLocationAddressTextView.setText(locality);
 
     }
 
@@ -200,7 +214,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     /**
-     *
      * @param jsonData
      * @return
      * @throws JSONException
@@ -236,7 +249,6 @@ public class MainActivity extends AppCompatActivity implements
 
 
     /**
-     *
      * @param jsonData
      * @return
      * @throws JSONException
@@ -267,7 +279,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     /**
-     *
      * @param jsonData
      * @return
      * @throws JSONException
@@ -297,7 +308,6 @@ public class MainActivity extends AppCompatActivity implements
     //------------------------------- METODOS CONEXION APIs ----------------------------------------
 
     /**
-     *
      * @return
      */
     private boolean isNetworkAvailable() {
@@ -313,116 +323,184 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     /**
-     *
      * @param bundle
      */
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Location services connected.");
 
-        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissionsCheck();
 
-        if (permissionCheck == 0) {
-            Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+    }
 
-            if (lastLocation == null) {
 
-                alertUserAboutError(getString(R.string.error_title), getString(R.string.NoLocationServices));
-                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    public void permissionsCheck () {
+
+        final Geocoder geocoder = new Geocoder(this);
+        final String errorMessage = "";
+
+
+        // Verficamos si la API es = 23 o mayor
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+            Log.d("permissionCheck", "Value" + permissionCheck);
+
+            //verificamos si el permiso no existe
+            if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                // verificamos si el usuario a rechazado anteriormente el permiso
+                if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    // si a rechazado el permiso anteriormente muestro un mensaje
+                    mostrarExplicación();
+                } else {
+                    // De lo contrario carga la ventana para autorizar el permiso
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_PERMISSION);
+                }
             } else {
 
-                final double lastLatitude = lastLocation.getLatitude();
-                final double lastLongitude = lastLocation.getLongitude();
-
-                mRefreshImageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        getForecast(lastLatitude, lastLongitude);
-                    }
-                });
-
-                getForecast(lastLatitude, lastLongitude);
-
-                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-                List<Address> addresses = null;
-                try {
-                    addresses = geocoder.getFromLocation(lastLatitude, lastLongitude, 1);
-
-                    if (addresses == null || addresses.size() == 0) {
-
-                        String geocoderAPIKey = "AIzaSyCTIaJJ8hNy4kE5RFcpeoS7TEplA66pZX8";
-
-                        String revGeocoderUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lastLatitude + "," + lastLongitude
-                                + "&key=" + geocoderAPIKey;
-
-                        OkHttpClient client2 = new OkHttpClient();
-                        Request request2 = new Request.Builder().url(revGeocoderUrl).build();
-
-                        Call call = client2.newCall(request2);
-                        call.enqueue(new Callback() {
+                mFusedLocationClient.getLastLocation()
+                        .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                             @Override
-                            public void onFailure(Request request2, IOException e) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        toogleRefresh();
+                            public void onSuccess(final Location location) {
+                                // Got last known location. In some rare situations this can be null.
+                                if (location != null) {
+                                    // Logic to handle location object
+
+                                    final double lastLatitude = location.getLatitude();
+                                    final double lastLongitude = location.getLongitude();
+
+                                    mRefreshImageView.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            getForecast(lastLatitude, lastLongitude);
+                                        }
+                                    });
+
+                                    getForecast(lastLatitude, lastLongitude);
+
+                                    List<Address> addresses;
+                                    try {
+
+                                        addresses = geocoder.getFromLocation(lastLatitude, lastLongitude, 1);
+
+                                        if (addresses != null) {
+
+                                            String geocoderAPIKey = "AIzaSyAyId31OM3GoKX1pkYvRg4DkVjcWGm2P7o";
+
+                                            String revGeocoderUrl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lastLatitude + "," + lastLongitude
+                                                    + "&key=" + geocoderAPIKey;
+
+                                            OkHttpClient client2 = new OkHttpClient();
+                                            Request request2 = new Request.Builder().url(revGeocoderUrl).build();
+
+                                            Call call = client2.newCall(request2);
+                                            call.enqueue(new Callback() {
+                                                @Override
+                                                public void onFailure(Request request2, IOException e) {
+
+                                                    alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
+                                                }
+
+                                                @Override
+                                                public void onResponse(Response response) throws IOException {
+
+                                                    try {
+                                                        String jsonDataGeocoder = response.body().string();
+
+                                                        if (response.isSuccessful()) {
+
+                                                            Log.v(TAG, " ESTO " + jsonDataGeocoder);
+                                                            JSONObject geocoderAPI = new JSONObject(jsonDataGeocoder);
+
+                                                            JSONObject compound_code = geocoderAPI.getJSONObject("plus_code");
+                                                            String compound_code_array = compound_code.getString("compound_code");
+                                                            locality = compound_code_array.substring(8);
+
+                                                            Log.i(TAG, "Geocoder API connected:" + locality);
+
+                                                        } else {
+                                                            alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
+                                                        }
+
+                                                    } catch (JSONException e) {
+                                                        Log.e(TAG, "Exeception caught: ", e);
+                                                    }
+                                                }
+                                            });
+
+                                            mLocationAddressTextView.setText(locality);
+                                            Log.v(TAG, "texView:" + locality);
+
+                                        }
+                                    } catch (IOException io) {
+                                        Log.e(TAG, errorMessage, io);
                                     }
-                                });
-                                alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
-                            }
-
-                            @Override
-                            public void onResponse(Response response) throws IOException {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        toogleRefresh();
-                                    }
-                                });
-                                try {
-                                    String jsonDataGeocoder = response.body().string();
-                                    Log.v(TAG, jsonDataGeocoder);
-                                    if (response.isSuccessful()) {
-
-                                        JSONObject geocoderAPI = new JSONObject(jsonDataGeocoder);
-                                        JSONArray addressComp = geocoderAPI.getJSONArray("results").getJSONObject(1).getJSONArray("address_components");
-                                        locality = addressComp.getJSONObject(0).getString("long_name");
-
-                                        Log.i(TAG, "Geocoder API connected:" + locality);
-
-                                    } else {
-                                        alertUserAboutError(getString(R.string.error_title), getString(R.string.error_message));
-                                    }
-
-                                } catch (IOException | JSONException e) {
-                                    Log.e(TAG, "Exeception caught: ", e);
+                                } else {
+                                    alertUserAboutError(getString(R.string.error_title), getString(R.string.no_address));
                                 }
                             }
                         });
 
-                        mLocationAddressTextView.setText(locality);
 
-                    } else {
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "API es mayor de 23", Toast.LENGTH_SHORT).show();
 
-                        String cityName = addresses.get(0).getAddressLine(0);
-                        String stateName = addresses.get(0).getAddressLine(1);
-                        String countryName = addresses.get(0).getAddressLine(2);
-                        String nName = addresses.get(0).getAddressLine(3);
+        }
 
-                        Log.i(TAG, "Location services connected." + cityName.replaceAll("\\d", ""));
-                        Log.i(TAG, "Location services connected." + stateName.replaceAll("\\d", ""));
-                        Log.i(TAG, "Location services connected." + countryName);
-                        Log.i(TAG, "Location services connected." + nName);
+    }
 
-                        mLocationAddressTextView.setText(stateName.replaceAll("\\d", ""));
+
+
+
+    private void mostrarExplicación() {
+        new AlertDialog.Builder(this)
+                .setTitle("Autorización")
+                .setMessage("Necesito permiso para acceder a la ubicacion de tu dispositivo.")
+                .setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_PERMISSION);
+                        }
+
+                    }
+                })
+                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        //Mensaje acción cancelada
+                        mensajeAccionCancelada();
                     }
 
-                } catch (IOException e) {
 
-                    e.printStackTrace();
+                })
+                .show();
+    }
+
+    public void mensajeAccionCancelada(){
+        Toast.makeText(getApplicationContext(),
+                "Haz rechazado la petición, por favor considere en aceptarla.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        switch (requestCode) {
+            case ACCESS_FINE_LOCATION_PERMISSION:
+                // Si el permiso ha sido concedido llamamos a onConnected()
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getApplicationContext(),
+                            "Callback funcionando",
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    mensajeAccionCancelada();
                 }
-            }
         }
+
     }
 
     /**
@@ -450,7 +528,7 @@ public class MainActivity extends AppCompatActivity implements
         try {
             addresses = geocoder.getFromLocation(currentLatitude, currentLongitude, 1);
 
-            if (addresses == null || addresses.size() == 0) {
+            if (addresses != null || addresses.size() == 0) {
                 alertUserAboutError(getString(R.string.error_title), getString(R.string.no_address));
             } else {
                 String cityName = addresses.get(0).getAddressLine(0);
@@ -466,6 +544,8 @@ public class MainActivity extends AppCompatActivity implements
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        updateDisplay();
     }
 
     /**
@@ -515,10 +595,11 @@ public class MainActivity extends AppCompatActivity implements
         Current current = mforecast.getCurrent();
 
         mTemperatureLabel.setText(current.getTemperature() + "");
-        mTimeLabel.setText("At " + current.getFormattedTime() + " it will be");
+        mTimeLabel.setText("At " + current.getFormattedTime() + "");
         mHumidityValue.setText(current.getHumidity() + "");
         mPrecipValue.setText(current.getPrecipChance() + "%");
         mSummaryLabel.setText(current.getSummary());
+        mLocation.setText(locality);
 
         Drawable drawable = getResources().getDrawable(current.getIconId());
         mIconImageView.setImageDrawable(drawable);
