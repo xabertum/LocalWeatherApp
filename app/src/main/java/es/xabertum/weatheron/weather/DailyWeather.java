@@ -2,7 +2,6 @@ package es.xabertum.weatheron.weather;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,7 +40,6 @@ public class DailyWeather implements Parcelable {
         mTimezone = in.readString();
 
     }
-
 
     /**
      *

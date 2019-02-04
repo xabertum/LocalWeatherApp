@@ -99,8 +99,8 @@ public class MainActivity extends AppCompatActivity implements
     ImageView mRefreshImageView;
     @BindView(R.id.progressBar)
     ProgressBar mProgressBar;
-    @BindView(R.id.mainBackground)
-    RelativeLayout mMainBackground;
+    @BindView(R.id.mMainBackgroundImage)
+    ImageView mMainBackgroundImage;
     @BindView(R.id.location)
     TextView mLocation;
 
@@ -331,6 +331,7 @@ public class MainActivity extends AppCompatActivity implements
 
         permissionsCheck();
 
+
     }
 
 
@@ -403,6 +404,15 @@ public class MainActivity extends AppCompatActivity implements
 
                                                 @Override
                                                 public void onResponse(Response response) throws IOException {
+
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            toogleRefresh();
+
+                                                        }
+                                                    });
+
 
                                                     try {
                                                         String jsonDataGeocoder = response.body().string();
@@ -518,34 +528,13 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 getForecast(currentLatitude, currentLongitude);
+
             }
         });
 
         getForecast(currentLatitude, currentLongitude);
 
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        List<Address> addresses = null;
-        try {
-            addresses = geocoder.getFromLocation(currentLatitude, currentLongitude, 1);
 
-            if (addresses != null || addresses.size() == 0) {
-                alertUserAboutError(getString(R.string.error_title), getString(R.string.no_address));
-            } else {
-                String cityName = addresses.get(0).getAddressLine(0);
-                String stateName = addresses.get(0).getAddressLine(1);
-                String countryName = addresses.get(0).getAddressLine(2);
-
-                Log.i(TAG, "Location services connected." + cityName.replaceAll("\\d", ""));
-                Log.i(TAG, "Location services connected." + stateName.replaceAll("\\d", ""));
-                Log.i(TAG, "Location services connected." + countryName);
-
-                mLocationAddressTextView.setText(cityName.replaceAll("\\d", "") + ", " + stateName);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        updateDisplay();
     }
 
     /**
@@ -605,7 +594,7 @@ public class MainActivity extends AppCompatActivity implements
         mIconImageView.setImageDrawable(drawable);
 
         Drawable drawableBg = getResources().getDrawable(current.getBackgroundId());
-        mMainBackground.setBackground(drawableBg);
+        mMainBackgroundImage.setBackground(drawableBg);
 
     }
 
