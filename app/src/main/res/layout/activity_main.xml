@@ -71,14 +71,17 @@
         android:id="@+id/iconImageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/location"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_above="@+id/timeLabel"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentBottom="false"
         android:layout_centerInParent="false"
         android:layout_centerHorizontal="true"
-        android:layout_marginStart="191dp"
-        android:layout_marginLeft="191dp"
-        android:layout_marginBottom="-43dp"
+        android:layout_centerVertical="false"
         android:src="@drawable/cloudy_night" />
 
     <LinearLayout
@@ -143,7 +146,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/linearLayout"
         android:layout_centerInParent="true"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="0dp"
         android:text="@string/LoadingSummary"
         android:textColor="@android:color/background_light"
         android:textSize="18sp" />
@@ -176,8 +179,8 @@
         android:orientation="horizontal"
         android:paddingLeft="16dp"
         android:paddingTop="16dp"
-        android:paddingRight="32dp"
-        android:paddingBottom="32dp">
+        android:paddingRight="16dp"
+        android:paddingBottom="16dp">
 
         <Button
             android:id="@+id/hourlyButton"
