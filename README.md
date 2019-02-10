@@ -1,1 +1,1 @@
-# Android Weather Forecast App - WeatherOn
+# Android Weather Forecast App - LocalWeather
