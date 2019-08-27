@@ -31,7 +31,6 @@ public class DailyForecastActivity extends ListActivity {
         TextView textView = (TextView) findViewById(R.id.weekSummary);
         textView.setText(weekSummary);
 
-
         mDays = Arrays.copyOf(parcelables, parcelables.length, DailyWeather[].class);
 
         DayAdapter adapter = new DayAdapter(this, mDays);
