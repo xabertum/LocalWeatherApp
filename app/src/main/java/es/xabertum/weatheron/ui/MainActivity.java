@@ -340,7 +340,6 @@ public class MainActivity extends AppCompatActivity implements
         final Geocoder geocoder = new Geocoder(this);
         final String errorMessage = "";
 
-
         // Verficamos si la API es = 23 o mayor
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
@@ -412,7 +411,6 @@ public class MainActivity extends AppCompatActivity implements
 
                                                         }
                                                     });
-
 
                                                     try {
                                                         String jsonDataGeocoder = response.body().string();
@@ -491,7 +489,7 @@ public class MainActivity extends AppCompatActivity implements
 
     public void mensajeAccionCancelada(){
         Toast.makeText(getApplicationContext(),
-                "Haz rechazado la petición, por favor considere en aceptarla.",
+                "Has rechazado la petición, por favor considere en aceptarla.",
                 Toast.LENGTH_SHORT).show();
     }
 

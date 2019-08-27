@@ -21,7 +21,6 @@ public class Forecast {
         mDailyWeather = dailyWeather;
     }
 
-
     public Current getCurrent() {
         return mCurrent;
     }
